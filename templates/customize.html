@@ -1,0 +1,45 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Customize</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<div class="container">
+<h2>Customize Gestures</h2>
+
+<select id="gesture">
+<option value="PINCH_THUMB_INDEX">Pinch Thumb+Index</option>
+<option value="PINCH_INDEX_MIDDLE">Pinch Index+Middle</option>
+<option value="MOVE_UP">Move Up</option>
+<option value="MOVE_DOWN">Move Down</option>
+<option value="CURSOR_MOVE">Cursor Move</option>
+</select>
+
+<select id="action">
+<option value="LEFT CLICK">Left Click</option>
+<option value="RIGHT CLICK">Right Click</option>
+<option value="SCROLL UP">Scroll Up</option>
+<option value="SCROLL DOWN">Scroll Down</option>
+<option value="CURSOR MOVE">Cursor Move</option>
+</select>
+
+<button onclick="save()">Save</button>
+<button onclick="location.href='/'">Back</button>
+<p id="msg"></p>
+</div>
+
+<script>
+function save(){
+fetch("/update-mapping",{method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+gesture:gesture.value,
+action:action.value
+})})
+.then(()=>msg.innerText="Updated");
+}
+</script>
+</body>
+</html>

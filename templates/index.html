@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Gesture Pro</title>
+<link rel="stylesheet" href="/static/style.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Gesture Pro</h1>
+<p class="subtitle">Control your computer using hand gestures</p>
+
+<p>
+Status :
+<span id="status" class="badge stopped">STOPPED</span>
+</p>
+
+
+<!-- CURRENT ACTION SECTION -->
+
+<div class="action-panel">
+
+<h3>Current Action</h3>
+
+<div id="actionBox">
+
+<span id="actionIcon">🖱️</span>
+<span id="actionText">None</span>
+
+</div>
+
+</div>
+
+
+<div class="controls">
+
+<button class="start" onclick="start()">Start</button>
+<button class="stop" onclick="stop()">Stop</button>
+<button class="custom" onclick="location.href='/customize'">Customize</button>
+
+</div>
+
+
+<h3>Camera</h3>
+
+<div class="camera-box">
+<img id="camera" width="500">
+</div>
+
+
+<h3>Gesture Guide</h3>
+
+<ul id="guide"></ul>
+
+
+<h3>Assistant</h3>
+
+<div class="chat">
+
+<div id="chatBox"></div>
+
+<input id="userInput" placeholder="Ask about gestures...">
+
+<button class="send" onclick="sendMsg()">Send</button>
+
+</div>
+
+</div>
+
+
+<script>
+
+let camera=document.getElementById("camera")
+let status=document.getElementById("status")
+let guide=document.getElementById("guide")
+
+let actionText=document.getElementById("actionText")
+let actionIcon=document.getElementById("actionIcon")
+
+let chatBox=document.getElementById("chatBox")
+let userInput=document.getElementById("userInput")
+
+
+function start(){
+
+fetch("/start",{method:"POST"})
+
+camera.src="/video_feed"
+
+}
+
+
+function stop(){
+
+fetch("/stop",{method:"POST"})
+
+camera.src=""
+
+}
+
+
+function loadGuide(){
+
+fetch("/mapping")
+.then(r=>r.json())
+.then(data=>{
+
+guide.innerHTML=""
+
+for(let g in data){
+
+let li=document.createElement("li")
+
+li.innerHTML="<b>"+data[g].description+"</b> → "+data[g].action
+
+guide.appendChild(li)
+
+}
+
+})
+
+}
+
+
+setInterval(()=>{
+
+fetch("/status")
+.then(r=>r.json())
+.then(d=>{
+
+status.innerText=d.running?"RUNNING":"STOPPED"
+
+status.className="badge "+(d.running?"running":"stopped")
+
+actionText.innerText=d.action
+
+
+if(d.action==="LEFT CLICK"){
+actionIcon.innerText="👆"
+}
+
+else if(d.action==="RIGHT CLICK"){
+actionIcon.innerText="✌️"
+}
+
+else if(d.action==="SCROLL UP"){
+actionIcon.innerText="⬆️"
+}
+
+else if(d.action==="SCROLL DOWN"){
+actionIcon.innerText="⬇️"
+}
+
+else if(d.action==="CURSOR MOVE"){
+actionIcon.innerText="🖱️"
+}
+
+else{
+actionIcon.innerText="⭕"
+}
+
+})
+
+},500)
+
+
+
+function sendMsg(){
+
+let msg=userInput.value
+
+if(msg.trim()=="") return
+
+chatBox.innerHTML+=`<p><b>You:</b> ${msg}</p>`
+
+fetch("/assistant",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({message:msg})
+})
+.then(r=>r.json())
+.then(d=>{
+
+chatBox.innerHTML+=`<p><b>Assistant:</b> ${d.reply}</p>`
+
+chatBox.scrollTop=chatBox.scrollHeight
+
+})
+
+userInput.value=""
+
+}
+
+loadGuide()
+
+</script>
+
+</body>
+</html>
